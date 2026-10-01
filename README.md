@@ -117,12 +117,17 @@ in `notify` mode everyone gets an email, in `confirm` mode everyone has to enter
 that, trust each user's first device silently:
 
 ```python
+from datetime import date
+
 TRUSTED_DEVICES_SILENT_FIRST_DEVICE = True
+TRUSTED_DEVICES_SILENT_FIRST_DEVICE_UNTIL = date(2026, 11, 15)  # e.g. a month after the rollout
 ```
 
-The trade-off: whoever signs in first after the rollout is trusted without a word, and the same goes
-for a user who removed all their devices. Turn it off again once your users have signed in, if that
-matters to you more than a quiet rollout.
+The trade-off: until that date, whoever signs in first is trusted without a word (someone with the
+user's password who beats them to it, for example), and so is the next sign-in of a user who removed
+all their devices. Second factors still apply: MFA and login-by-code users pass those as usual. After
+the date, a user without devices signs in like everyone else. Leave `..._UNTIL` unset only if you
+accept that for good.
 
 ## Behind a proxy or load balancer
 
@@ -153,6 +158,7 @@ TRUSTED_DEVICES_MODE = "off"
 |---|---|---|
 | `TRUSTED_DEVICES_MODE` | `"notify"` | `"off"`, `"notify"` or `"confirm"` |
 | `TRUSTED_DEVICES_SILENT_FIRST_DEVICE` | `False` | Trust a user's first device without email or code. See [Rolling out](#rolling-out-on-an-existing-site). |
+| `TRUSTED_DEVICES_SILENT_FIRST_DEVICE_UNTIL` | `None` | `date` or `datetime` after which `SILENT_FIRST_DEVICE` stops applying. `None` means no end. |
 | `TRUSTED_DEVICES_SKIP_CONFIRM_METHODS` | `["mfa", "code"]` | allauth authentication methods that count as a second factor in `confirm` mode. Add `"socialaccount"` to trust the identity provider. |
 | `TRUSTED_DEVICES_NOTIFY_AFTER_SKIPPED_CONFIRM` | `True` | Still send the new-device email when `confirm` mode skipped the code. |
 | `TRUSTED_DEVICES_REVOKE_ON_PASSWORD_CHANGE` | `True` | Forget all other devices when the password is changed, set or reset. |

@@ -1,8 +1,9 @@
 """Settings, all prefixed with ``TRUSTED_DEVICES_``. Read lazily so tests can override them."""
 
-from datetime import timedelta
+from datetime import datetime, time, timedelta
 
 from django.conf import settings
+from django.utils import timezone
 
 MODE_OFF = "off"
 MODE_NOTIFY = "notify"
@@ -40,10 +41,28 @@ class AppSettings:
     def SILENT_FIRST_DEVICE(self) -> bool:
         """Trust a user's first device without email or code (any mode).
 
-        Meant for rolling the package out on a site with existing users. It also covers a user who
-        removed all their devices, so leave it off where that matters more than a quiet rollout.
+        Meant for rolling the package out on a site with existing users. Whoever signs in first is
+        trusted, and so is the next sign-in of a user who removed all their devices, so limit it in
+        time with ``SILENT_FIRST_DEVICE_UNTIL``.
         """
         return self._setting("SILENT_FIRST_DEVICE", False)
+
+    @property
+    def SILENT_FIRST_DEVICE_UNTIL(self) -> datetime | None:
+        """End of the rollout window for ``SILENT_FIRST_DEVICE``: a ``datetime`` or ``date``.
+
+        From this moment on a user without devices signs in like everyone else. ``None`` (the
+        default) means no end. A ``date`` means midnight at the start of that day, and a naive
+        ``datetime`` is taken in the current time zone.
+        """
+        until = self._setting("SILENT_FIRST_DEVICE_UNTIL", None)
+        if until is None:
+            return None
+        if not isinstance(until, datetime):
+            until = datetime.combine(until, time.min)
+        if timezone.is_naive(until):
+            until = timezone.make_aware(until)
+        return until
 
     @property
     def NOTIFY_AFTER_SKIPPED_CONFIRM(self) -> bool:

@@ -27,12 +27,17 @@ class DefaultTrustedDevicesAdapter:
     def trust_first_device_silently(self, request: HttpRequest, user) -> bool:
         """Whether to trust this device without email or code because the user has none yet.
 
-        Controlled by ``TRUSTED_DEVICES_SILENT_FIRST_DEVICE``, so that installing the package on an
-        existing site does not email every user on their next sign-in.
+        Controlled by ``TRUSTED_DEVICES_SILENT_FIRST_DEVICE`` and ``..._UNTIL``, so that installing the
+        package on an existing site does not email every user on their next sign-in.
         """
         from allauth_trusted_devices.models import TrustedDevice
 
-        return app_settings.SILENT_FIRST_DEVICE and not TrustedDevice.objects.filter(user=user).exists()
+        if not app_settings.SILENT_FIRST_DEVICE:
+            return False
+        until = app_settings.SILENT_FIRST_DEVICE_UNTIL
+        if until is not None and timezone.now() >= until:
+            return False
+        return not TrustedDevice.objects.filter(user=user).exists()
 
     def get_login_methods(self, request: HttpRequest, login) -> set[str]:
         """The allauth authentication methods used during this login attempt."""

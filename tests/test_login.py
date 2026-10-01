@@ -1,4 +1,5 @@
 import re
+from datetime import date, datetime, timedelta
 
 import pytest
 from allauth.account.models import EmailAddress
@@ -13,6 +14,7 @@ from django.contrib.auth import get_user_model
 from django.core import mail
 from django.test import Client
 from django.urls import reverse
+from django.utils import timezone
 
 from allauth_trusted_devices.adapter import DefaultTrustedDevicesAdapter
 from allauth_trusted_devices.models import TrustedDevice
@@ -315,3 +317,36 @@ class TestSilentFirstDevice:
         login(client)
 
         assert len(mail.outbox) == 1
+
+    def test_silent_until_in_future(self, client, user, settings):
+        settings.TRUSTED_DEVICES_SILENT_FIRST_DEVICE_UNTIL = timezone.now() + timedelta(days=1)
+
+        login(client)
+
+        assert mail.outbox == []
+
+    def test_not_silent_after_until(self, client, user, settings):
+        settings.TRUSTED_DEVICES_SILENT_FIRST_DEVICE_UNTIL = timezone.now() - timedelta(seconds=1)
+
+        login(client)
+
+        assert len(mail.outbox) == 1
+
+    def test_removing_all_devices_after_until_is_not_silent(self, client, user, settings):
+        login(client)
+        TrustedDevice.objects.filter(user=user).delete()
+        logout(client)
+        settings.TRUSTED_DEVICES_SILENT_FIRST_DEVICE_UNTIL = timezone.now() - timedelta(seconds=1)
+        mail.outbox.clear()
+
+        login(client)
+
+        assert len(mail.outbox) == 1
+
+    def test_until_accepts_date_and_naive_datetime(self, settings):
+        from allauth_trusted_devices.app_settings import app_settings
+
+        settings.TRUSTED_DEVICES_SILENT_FIRST_DEVICE_UNTIL = date(2026, 11, 1)
+        assert app_settings.SILENT_FIRST_DEVICE_UNTIL == timezone.make_aware(datetime(2026, 11, 1))
+        settings.TRUSTED_DEVICES_SILENT_FIRST_DEVICE_UNTIL = datetime(2026, 11, 1, 12, 30)
+        assert timezone.is_aware(app_settings.SILENT_FIRST_DEVICE_UNTIL)
