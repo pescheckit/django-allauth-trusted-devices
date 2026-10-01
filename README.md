@@ -3,7 +3,7 @@
 [![CI](https://github.com/pescheckit/django-allauth-trusted-devices/actions/workflows/ci.yml/badge.svg)](https://github.com/pescheckit/django-allauth-trusted-devices/actions/workflows/ci.yml)
 [![PyPI](https://img.shields.io/pypi/v/django-allauth-trusted-devices?label=PyPI)](https://pypi.org/project/django-allauth-trusted-devices/)
 [![Python](https://img.shields.io/pypi/pyversions/django-allauth-trusted-devices?label=Python)](https://pypi.org/project/django-allauth-trusted-devices/)
-[![Django](https://img.shields.io/pypi/djversions/django-allauth-trusted-devices?label=Django)](https://pypi.org/project/django-allauth-trusted-devices/)
+[![Django](https://img.shields.io/badge/Django-4.2%20%7C%205.2%20%7C%206.0%20%7C%206.1-0C4B33)](https://pypi.org/project/django-allauth-trusted-devices/)
 
 Tell users when their account is used from a device it has not seen before, or make them confirm
 that device by email first. Built on [django-allauth](https://allauth.org)'s own login stages.
