@@ -1,0 +1,14 @@
+{% extends "account/email/base_message.txt" %}
+{% load i18n %}
+
+{% block content %}{% autoescape off %}{% blocktranslate %}Someone signed in to your account with your password from a device we have not seen before:
+
+- Device: {{ device }}
+- IP address: {{ ip }}
+- Date: {{ timestamp }}{% endblocktranslate %}
+
+{% blocktranslate %}If this was you, enter the code below in your open browser window to confirm this device:{% endblocktranslate %}
+
+{{ code }}
+
+{% blocktranslate %}If this was not you, do not share this code with anyone and change your password immediately: someone knows it.{% endblocktranslate %}{% endautoescape %}{% endblock content %}

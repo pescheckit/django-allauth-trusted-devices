@@ -1,0 +1,1 @@
+{% load i18n %}{% autoescape off %}{% blocktranslate %}Confirm sign-in from a new device{% endblocktranslate %}{% endautoescape %}

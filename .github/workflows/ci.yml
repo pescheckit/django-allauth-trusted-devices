@@ -1,0 +1,55 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+    tags: ["*"]
+  pull_request:
+    branches: [main]
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v4
+      - run: uvx ruff check .
+      - run: uvx ruff format --check .
+
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # Oldest supported combination.
+          - { python: "3.10", django: "4.2", allauth: "65.10.0" }
+          - { python: "3.12", django: "5.2", allauth: "65.*" }
+          - { python: "3.13", django: "6.0", allauth: "65.*" }
+          - { python: "3.14", django: "6.1", allauth: "65.*" }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v4
+      - name: Install
+        run: |
+          uv venv --python ${{ matrix.python }}
+          uv pip install -e ".[test]" "Django==${{ matrix.django }}.*" "django-allauth[mfa]==${{ matrix.allauth }}"
+      - name: Missing migrations
+        run: uv run --no-sync django-admin makemigrations --check --dry-run --settings=tests.settings --pythonpath .
+      - name: Test
+        run: uv run --no-sync pytest -v --cov --cov-report=term-missing
+
+  publish:
+    needs: [lint, test]
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/')
+    environment: pypi
+    permissions:
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v4
+      - name: Build
+        run: uv build
+      - name: Publish to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1

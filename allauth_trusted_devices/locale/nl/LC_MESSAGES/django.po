@@ -1,0 +1,197 @@
+# Dutch translation of django-allauth-trusted-devices.
+# This file is distributed under the same license as the django-allauth-trusted-devices package.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: django-allauth-trusted-devices\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-10-01 08:40-0500\n"
+"PO-Revision-Date: 2026-10-01 08:40-0500\n"
+"Last-Translator: PESCHECK\n"
+"Language-Team: Dutch\n"
+"Language: nl\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: apps.py
+msgid "Trusted devices"
+msgstr "Vertrouwde apparaten"
+
+#: forms.py
+msgid "Code"
+msgstr "Code"
+
+#: forms.py
+msgid "Incorrect code."
+msgstr "Onjuiste code."
+
+#: models.py
+msgid "user"
+msgstr "gebruiker"
+
+#: models.py
+msgid "token hash"
+msgstr "token-hash"
+
+#: models.py
+msgid "user agent"
+msgstr "user agent"
+
+#: models.py
+msgid "first IP address"
+msgstr "eerste IP-adres"
+
+#: models.py
+msgid "last IP address"
+msgstr "laatste IP-adres"
+
+#: models.py
+msgid "first seen"
+msgstr "eerst gezien"
+
+#: models.py
+msgid "last seen"
+msgstr "laatst gezien"
+
+#: models.py
+msgid "trusted device"
+msgstr "vertrouwd apparaat"
+
+#: models.py
+msgid "trusted devices"
+msgstr "vertrouwde apparaten"
+
+#: templates/allauth_trusted_devices/confirm.html
+msgid "Confirm New Device"
+msgstr "Nieuw apparaat bevestigen"
+
+#: templates/allauth_trusted_devices/device_list.html
+msgid "Trusted Devices"
+msgstr "Vertrouwde apparaten"
+
+#: templates/allauth_trusted_devices/device_list.html
+msgid ""
+"These browsers have signed in to your account before. Signing in from any "
+"other browser sends you an email. Remove a device you do not recognise and "
+"change your password."
+msgstr ""
+"Met deze browsers is eerder ingelogd op je account. Log je in vanaf een "
+"andere browser, dan ontvang je een e-mail. Herken je een apparaat niet? "
+"Verwijder het en wijzig je wachtwoord."
+
+#: templates/allauth_trusted_devices/device_list.html
+msgid "Device"
+msgstr "Apparaat"
+
+#: templates/allauth_trusted_devices/device_list.html
+msgid "Last IP address"
+msgstr "Laatste IP-adres"
+
+#: templates/allauth_trusted_devices/device_list.html
+msgid "First seen"
+msgstr "Eerst gezien"
+
+#: templates/allauth_trusted_devices/device_list.html
+msgid "Last seen"
+msgstr "Laatst gezien"
+
+#: templates/allauth_trusted_devices/device_list.html
+msgid "This device"
+msgstr "Dit apparaat"
+
+#: templates/allauth_trusted_devices/device_list.html
+msgid "Remove"
+msgstr "Verwijderen"
+
+#: templates/allauth_trusted_devices/device_list.html
+msgid "No trusted devices yet."
+msgstr "Nog geen vertrouwde apparaten."
+
+#: templates/allauth_trusted_devices/email/confirm_device_message.txt
+#, python-format
+msgid ""
+"Someone signed in to your account with your password from a device we have not seen before:\n"
+"\n"
+"- Device: %(device)s\n"
+"- IP address: %(ip)s\n"
+"- Date: %(timestamp)s"
+msgstr ""
+"Iemand heeft met je wachtwoord ingelogd op je account vanaf een apparaat dat we nog niet eerder hebben gezien:\n"
+"\n"
+"- Apparaat: %(device)s\n"
+"- IP-adres: %(ip)s\n"
+"- Datum: %(timestamp)s"
+
+#: templates/allauth_trusted_devices/email/confirm_device_message.txt
+msgid ""
+"If this was you, enter the code below in your open browser window to confirm"
+" this device:"
+msgstr ""
+"Was jij dit? Voer dan de onderstaande code in het geopende browservenster in"
+" om dit apparaat te bevestigen:"
+
+#: templates/allauth_trusted_devices/email/confirm_device_message.txt
+msgid ""
+"If this was not you, do not share this code with anyone and change your "
+"password immediately: someone knows it."
+msgstr ""
+"Was jij dit niet? Deel deze code dan met niemand en wijzig direct je "
+"wachtwoord: iemand anders kent het."
+
+#: templates/allauth_trusted_devices/email/confirm_device_subject.txt
+msgid "Confirm sign-in from a new device"
+msgstr "Bevestig het inloggen vanaf een nieuw apparaat"
+
+#: templates/allauth_trusted_devices/email/new_device_message.txt
+#, python-format
+msgid ""
+"Someone just signed in to your account from a device we have not seen before:\n"
+"\n"
+"- Device: %(device)s\n"
+"- IP address: %(ip)s\n"
+"- Date: %(timestamp)s"
+msgstr ""
+"Er is zojuist ingelogd op je account vanaf een apparaat dat we nog niet eerder hebben gezien:\n"
+"\n"
+"- Apparaat: %(device)s\n"
+"- IP-adres: %(ip)s\n"
+"- Datum: %(timestamp)s"
+
+#: templates/allauth_trusted_devices/email/new_device_message.txt
+msgid ""
+"If this was you, you can ignore this email. If it was not, change your "
+"password immediately and remove the device from your trusted devices."
+msgstr ""
+"Was jij dit? Dan kun je deze e-mail negeren. Was jij dit niet? Wijzig dan "
+"direct je wachtwoord en verwijder het apparaat uit je vertrouwde apparaten."
+
+#: templates/allauth_trusted_devices/email/new_device_subject.txt
+msgid "New sign-in to your account"
+msgstr "Nieuwe inlog op je account"
+
+#: utils.py
+#, python-format
+msgid "%(browser)s on %(system)s"
+msgstr "%(browser)s op %(system)s"
+
+#: utils.py
+msgid "Unknown device"
+msgstr "Onbekend apparaat"
+
+#: views.py
+msgid "The confirmation code has expired. Please sign in again."
+msgstr "De bevestigingscode is verlopen. Log opnieuw in."
+
+#: views.py
+msgid "A new code has been sent."
+msgstr "Er is een nieuwe code verstuurd."
+
+#: views.py
+msgid "Too many incorrect codes. Please sign in again."
+msgstr "Te vaak een onjuiste code ingevoerd. Log opnieuw in."
+
+#: views.py
+msgid "The device has been removed."
+msgstr "Het apparaat is verwijderd."

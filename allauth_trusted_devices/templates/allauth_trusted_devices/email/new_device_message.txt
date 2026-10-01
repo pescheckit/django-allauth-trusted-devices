@@ -1,0 +1,12 @@
+{% extends "account/email/base_message.txt" %}
+{% load i18n %}
+
+{% block content %}{% autoescape off %}{% blocktranslate %}Someone just signed in to your account from a device we have not seen before:
+
+- Device: {{ device }}
+- IP address: {{ ip }}
+- Date: {{ timestamp }}{% endblocktranslate %}
+
+{% blocktranslate %}If this was you, you can ignore this email. If it was not, change your password immediately and remove the device from your trusted devices.{% endblocktranslate %}{% if devices_url %}
+
+{{ devices_url }}{% endif %}{% endautoescape %}{% endblock content %}

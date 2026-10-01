@@ -1,0 +1,70 @@
+{% extends "account/base_manage.html" %}
+{% load allauth i18n %}
+{% block head_title %}
+    {% translate "Trusted Devices" %}
+{% endblock head_title %}
+{% block content %}
+    {% element h1 tags="trusted-devices,list" %}
+        {% translate "Trusted Devices" %}
+    {% endelement %}
+    {% element p %}
+        {% translate "These browsers have signed in to your account before. Signing in from any other browser sends you an email. Remove a device you do not recognise and change your password." %}
+    {% endelement %}
+    {% if devices %}
+        {% element table tags="trusted-devices" %}
+            {% element thead %}
+                {% element tr %}
+                    {% element th %}
+                        {% translate "Device" %}
+                    {% endelement %}
+                    {% element th %}
+                        {% translate "Last IP address" %}
+                    {% endelement %}
+                    {% element th %}
+                        {% translate "First seen" %}
+                    {% endelement %}
+                    {% element th %}
+                        {% translate "Last seen" %}
+                    {% endelement %}
+                    {% element th %}
+                    {% endelement %}
+                {% endelement %}
+            {% endelement %}
+            {% element tbody %}
+                {% for device in devices %}
+                    {% element tr %}
+                        {% element td %}
+                            <span title="{{ device.user_agent }}">{{ device.description }}</span>
+                            {% if device.is_current %}
+                                {% element badge tags="trusted-device,current" %}
+                                    {% translate "This device" %}
+                                {% endelement %}
+                            {% endif %}
+                        {% endelement %}
+                        {% element td %}
+                            {{ device.last_ip_address|default:"-" }}
+                        {% endelement %}
+                        {% element td %}
+                            {{ device.created_at|date:"SHORT_DATETIME_FORMAT" }}
+                        {% endelement %}
+                        {% element td %}
+                            {{ device.last_used_at|date:"SHORT_DATETIME_FORMAT" }}
+                        {% endelement %}
+                        {% element td %}
+                            <form method="post" action="{% url 'trusted_devices_revoke' device.pk %}">
+                                {% csrf_token %}
+                                {% element button type="submit" tags="danger,delete,trusted-device" %}
+                                    {% translate "Remove" %}
+                                {% endelement %}
+                            </form>
+                        {% endelement %}
+                    {% endelement %}
+                {% endfor %}
+            {% endelement %}
+        {% endelement %}
+    {% else %}
+        {% element p %}
+            {% translate "No trusted devices yet." %}
+        {% endelement %}
+    {% endif %}
+{% endblock content %}

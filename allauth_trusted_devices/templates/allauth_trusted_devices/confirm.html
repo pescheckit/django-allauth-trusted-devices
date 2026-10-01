@@ -1,0 +1,15 @@
+{% extends "account/base_confirm_code.html" %}
+{% load i18n %}
+{% block head_title %}
+    {% translate "Confirm New Device" %}
+{% endblock head_title %}
+{% block title %}
+    {% translate "Confirm New Device" %}
+{% endblock %}
+{% block recipient %}
+    <a href="mailto:{{ email }}">{{ email }}</a>
+{% endblock %}
+{% block action_url %}
+    {% url 'trusted_devices_confirm' %}
+{% endblock %}
+{% block extra_tags %}trusted-device{% endblock %}
