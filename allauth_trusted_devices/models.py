@@ -3,11 +3,20 @@ from django.db import models
 from django.utils.translation import gettext_lazy as _
 
 
+class TrustedDeviceQuerySet(models.QuerySet):
+    def active(self):
+        """Devices that are trusted now, i.e. not removed."""
+        return self.filter(revoked_at__isnull=True)
+
+
 class TrustedDevice(models.Model):
     """A browser a user has signed in from before.
 
     The browser holds a random token in a cookie; only its SHA-256 hash is stored. One browser
     keeps one token, so several users of a shared computer each get their own row for it.
+
+    Removing a device sets ``revoked_at`` instead of deleting the row, so the user's history stays:
+    whether a user ever had a device must not be undone by removing devices.
     """
 
     user = models.ForeignKey(
@@ -22,6 +31,9 @@ class TrustedDevice(models.Model):
     last_ip_address = models.GenericIPAddressField(_("last IP address"), null=True, blank=True)
     created_at = models.DateTimeField(_("first seen"), auto_now_add=True)
     last_used_at = models.DateTimeField(_("last seen"), auto_now_add=True)
+    revoked_at = models.DateTimeField(_("removed"), null=True, blank=True)
+
+    objects = TrustedDeviceQuerySet.as_manager()
 
     class Meta:
         verbose_name = _("trusted device")

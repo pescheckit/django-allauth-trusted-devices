@@ -51,7 +51,9 @@ class TestDeviceList:
         response = client.post(reverse("trusted_devices_revoke", args=[other_device.pk]))
 
         assert response["Location"] == reverse("trusted_devices_list")
-        assert not TrustedDevice.objects.filter(pk=other_device.pk).exists()
+        other_device.refresh_from_db()
+        assert other_device.revoked_at is not None
+        assert other_device not in response.wsgi_request.user.trusted_devices.active()
 
     def test_cannot_remove_someone_elses_device(self, user):
         make_user("john@example.com")
@@ -87,8 +89,9 @@ class TestPasswordChange:
         )
 
         assert response.status_code == 302
-        remaining = TrustedDevice.objects.filter(user=user)
+        remaining = TrustedDevice.objects.active().filter(user=user)
         assert remaining.count() == 1
+        assert TrustedDevice.objects.filter(user=user).count() == 2
         assert client.get(reverse("trusted_devices_list")).context["devices"][0].is_current
 
     def test_can_be_disabled(self, user, settings):

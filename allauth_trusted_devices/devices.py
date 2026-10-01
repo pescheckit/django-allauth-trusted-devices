@@ -42,7 +42,7 @@ def get_trusted_device(request: HttpRequest, user) -> TrustedDevice | None:
     token = get_token(request)
     if not token or user is None or user.pk is None:
         return None
-    return TrustedDevice.objects.filter(user=user, token_hash=hash_token(token)).first()
+    return TrustedDevice.objects.active().filter(user=user, token_hash=hash_token(token)).first()
 
 
 def touch(request: HttpRequest, device: TrustedDevice) -> None:
@@ -61,11 +61,18 @@ def trust_device(request: HttpRequest, user) -> TrustedDevice:
     """
     token = get_token(request) or secrets.token_urlsafe(32)
     ip = _client_ip(request)
-    device, _created = TrustedDevice.objects.get_or_create(
+    device, created = TrustedDevice.objects.get_or_create(
         user=user,
         token_hash=hash_token(token),
         defaults={"user_agent": _user_agent(request), "ip_address": ip, "last_ip_address": ip},
     )
+    if not created:
+        # A removed browser that passed the new-device check again: trust it again.
+        device.revoked_at = None
+        device.user_agent = _user_agent(request)
+        device.last_ip_address = ip
+        device.last_used_at = timezone.now()
+        device.save(update_fields=["revoked_at", "user_agent", "last_ip_address", "last_used_at"])
     setattr(request, PENDING_COOKIE_ATTR, token)
     return device
 
@@ -88,10 +95,14 @@ def is_current_device(request: HttpRequest, device: TrustedDevice) -> bool:
     return bool(token) and secrets.compare_digest(device.token_hash, hash_token(token))
 
 
+def revoke(device: TrustedDevice) -> None:
+    device.revoked_at = timezone.now()
+    device.save(update_fields=["revoked_at"])
+
+
 def revoke_other_devices(request: HttpRequest, user) -> int:
-    devices = TrustedDevice.objects.filter(user=user)
+    devices = TrustedDevice.objects.active().filter(user=user)
     token = get_token(request)
     if token:
         devices = devices.exclude(token_hash=hash_token(token))
-    deleted, _ = devices.delete()
-    return deleted
+    return devices.update(revoked_at=timezone.now())

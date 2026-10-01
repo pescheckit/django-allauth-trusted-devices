@@ -334,7 +334,7 @@ class TestSilentFirstDevice:
 
     def test_removing_all_devices_after_until_is_not_silent(self, client, user, settings):
         login(client)
-        TrustedDevice.objects.filter(user=user).delete()
+        TrustedDevice.objects.filter(user=user).update(revoked_at=timezone.now())
         logout(client)
         settings.TRUSTED_DEVICES_SILENT_FIRST_DEVICE_UNTIL = timezone.now() - timedelta(seconds=1)
         mail.outbox.clear()
@@ -350,3 +350,50 @@ class TestSilentFirstDevice:
         assert app_settings.SILENT_FIRST_DEVICE_UNTIL == timezone.make_aware(datetime(2026, 11, 1))
         settings.TRUSTED_DEVICES_SILENT_FIRST_DEVICE_UNTIL = datetime(2026, 11, 1, 12, 30)
         assert timezone.is_aware(app_settings.SILENT_FIRST_DEVICE_UNTIL)
+
+
+@pytest.mark.usefixtures("silent_first")
+class TestRemovedDevices:
+    def test_removing_all_devices_does_not_bring_back_silent_trust(self, client, user):
+        login(client)
+        client.post(reverse("trusted_devices_revoke", args=[TrustedDevice.objects.get(user=user).pk]))
+        logout(client)
+        mail.outbox.clear()
+
+        login(client)
+        assert len(mail.outbox) == 1
+        login(Client(HTTP_USER_AGENT=UA_FIREFOX))
+        assert len(mail.outbox) == 2
+
+    def test_removed_browser_needs_confirmation_and_is_trusted_again(self, client, user, settings):
+        settings.TRUSTED_DEVICES_MODE = "confirm"
+        login(client)
+        device = TrustedDevice.objects.get(user=user)
+        client.post(reverse("trusted_devices_revoke", args=[device.pk]))
+        logout(client)
+
+        assert login(client)["Location"] == reverse("trusted_devices_confirm")
+        client.post(reverse("trusted_devices_confirm"), {"code": last_code()})
+
+        device.refresh_from_db()
+        assert device.revoked_at is None
+        assert TrustedDevice.objects.filter(user=user).count() == 1
+
+    def test_removed_device_is_not_listed_and_cannot_be_removed_twice(self, client, user):
+        login(client)
+        device = TrustedDevice.objects.get(user=user)
+        client.post(reverse("trusted_devices_revoke", args=[device.pk]))
+
+        assert client.get(reverse("trusted_devices_list")).context["devices"] == []
+        assert client.post(reverse("trusted_devices_revoke", args=[device.pk])).status_code == 404
+
+    def test_admin_action_removes_and_keeps_history(self, user, admin_client):
+        TrustedDevice.objects.create(user=user, token_hash="a" * 64)
+
+        admin_client.post(
+            reverse("admin:allauth_trusted_devices_trusteddevice_changelist"),
+            {"action": "revoke_devices", "_selected_action": [d.pk for d in TrustedDevice.objects.all()]},
+        )
+
+        assert TrustedDevice.objects.active().count() == 0
+        assert TrustedDevice.objects.count() == 1

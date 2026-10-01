@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: django-allauth-trusted-devices\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-01 08:40-0500\n"
+"POT-Creation-Date: 2026-10-01 10:46-0500\n"
 "PO-Revision-Date: 2026-10-01 08:40-0500\n"
 "Last-Translator: PESCHECK\n"
 "Language-Team: Dutch\n"
@@ -54,6 +54,11 @@ msgstr "eerst gezien"
 #: models.py
 msgid "last seen"
 msgstr "laatst gezien"
+
+#: models.py
+#| msgid "Remove"
+msgid "removed"
+msgstr "verwijderd"
 
 #: models.py
 msgid "trusted device"

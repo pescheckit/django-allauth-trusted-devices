@@ -37,6 +37,7 @@ class DefaultTrustedDevicesAdapter:
         until = app_settings.SILENT_FIRST_DEVICE_UNTIL
         if until is not None and timezone.now() >= until:
             return False
+        # Removed devices count too: removing every device must not make the next sign-in silent.
         return not TrustedDevice.objects.filter(user=user).exists()
 
     def get_login_methods(self, request: HttpRequest, login) -> set[str]:

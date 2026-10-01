@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.3.0 (2026-10-01)
+
+- Removing a device keeps it as history (`revoked_at`) instead of deleting it. The silent first
+  device only applies to users who never had a device, so removing every device no longer makes the
+  next sign-in silent. A removed browser counts as a new device again. Migration `0002`.
+- Admin action "Remove selected devices".
+
 ## 0.2.0 (2026-10-01)
 
 - `TRUSTED_DEVICES_SILENT_FIRST_DEVICE_UNTIL` ends the silent-first-device rollout window. Until then

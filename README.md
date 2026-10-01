@@ -123,11 +123,13 @@ TRUSTED_DEVICES_SILENT_FIRST_DEVICE = True
 TRUSTED_DEVICES_SILENT_FIRST_DEVICE_UNTIL = date(2026, 11, 15)  # e.g. a month after the rollout
 ```
 
-The trade-off: until that date, whoever signs in first is trusted without a word (someone with the
-user's password who beats them to it, for example), and so is the next sign-in of a user who removed
-all their devices. Second factors still apply: MFA and login-by-code users pass those as usual. After
-the date, a user without devices signs in like everyone else. Leave `..._UNTIL` unset only if you
-accept that for good.
+Only users who have never had a device are trusted this way. Removing devices keeps them in the
+history, so removing every device does not make the next sign-in silent again.
+
+The trade-off: until that date, whoever signs in first on an account without devices is trusted
+without a word (someone with the user's password who beats them to it, for example). Second factors
+still apply: MFA and login-by-code users pass those as usual. After the date, a user without devices
+signs in like everyone else. Leave `..._UNTIL` unset only if you accept that for good.
 
 ## Behind a proxy or load balancer
 
@@ -214,7 +216,9 @@ Both use allauth's `{% element %}` tags, so they follow your allauth theme. Over
 ## How devices are identified
 
 The cookie holds a random 256-bit token; the database stores only its SHA-256 hash, with the user
-agent, the first and last IP address and timestamps. One browser keeps one token, so on a shared
+agent, the first and last IP address and timestamps. Removing a device (by the user, a password
+change, or the admin's "Remove selected devices" action) sets `revoked_at` and keeps the row; that
+browser then counts as a new device again. Deleting rows in the admin erases the history as well. One browser keeps one token, so on a shared
 computer each user gets their own trusted-device row for it. IP addresses are recorded for display
 only and never decide whether a device is trusted, because they change too often.
 

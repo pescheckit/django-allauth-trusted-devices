@@ -73,7 +73,7 @@ class DeviceListView(TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        device_list = list(TrustedDevice.objects.filter(user=self.request.user))
+        device_list = list(TrustedDevice.objects.active().filter(user=self.request.user))
         for device in device_list:
             device.description = describe_user_agent(device.user_agent)
             device.is_current = devices.is_current_device(self.request, device)
@@ -86,8 +86,8 @@ class RevokeDeviceView(View):
     http_method_names = ["post"]
 
     def post(self, request, pk):
-        device = get_object_or_404(TrustedDevice, pk=pk, user=request.user)
-        device.delete()
+        device = get_object_or_404(TrustedDevice.objects.active(), pk=pk, user=request.user)
+        devices.revoke(device)
         messages.success(request, _("The device has been removed."))
         return HttpResponseRedirect(reverse("trusted_devices_list"))
 
