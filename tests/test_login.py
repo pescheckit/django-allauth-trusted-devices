@@ -278,3 +278,40 @@ def test_mail_is_translated(user):
     assert mail.outbox[0].subject.endswith("Nieuwe inlog op je account")
     assert "Firefox op Linux" in mail.outbox[0].body
     assert "IP-adres: 127.0.0.1" in mail.outbox[0].body
+
+
+@pytest.fixture
+def silent_first(settings):
+    settings.TRUSTED_DEVICES_SILENT_FIRST_DEVICE = True
+
+
+@pytest.mark.usefixtures("silent_first")
+class TestSilentFirstDevice:
+    def test_first_device_is_trusted_without_mail(self, client, user):
+        response = login(client)
+
+        assert response["Location"] == "/done/"
+        assert TrustedDevice.objects.filter(user=user).count() == 1
+        assert COOKIE in response.cookies
+        assert mail.outbox == []
+
+    def test_second_device_still_notifies(self, client, user):
+        login(client)
+        login(Client(HTTP_USER_AGENT=UA_FIREFOX))
+
+        assert len(mail.outbox) == 1
+        assert TrustedDevice.objects.filter(user=user).count() == 2
+
+    def test_confirm_mode_skips_code_for_first_device_only(self, client, user, settings):
+        settings.TRUSTED_DEVICES_MODE = "confirm"
+
+        assert login(client)["Location"] == "/done/"
+        assert mail.outbox == []
+        assert login(Client(HTTP_USER_AGENT=UA_FIREFOX))["Location"] == reverse("trusted_devices_confirm")
+
+    def test_off_by_default(self, client, user, settings):
+        del settings.TRUSTED_DEVICES_SILENT_FIRST_DEVICE
+
+        login(client)
+
+        assert len(mail.outbox) == 1

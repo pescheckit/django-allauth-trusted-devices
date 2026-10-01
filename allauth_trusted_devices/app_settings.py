@@ -37,6 +37,15 @@ class AppSettings:
         return self._setting("SKIP_CONFIRM_METHODS", ["mfa", "code"])
 
     @property
+    def SILENT_FIRST_DEVICE(self) -> bool:
+        """Trust a user's first device without email or code (any mode).
+
+        Meant for rolling the package out on a site with existing users. It also covers a user who
+        removed all their devices, so leave it off where that matters more than a quiet rollout.
+        """
+        return self._setting("SILENT_FIRST_DEVICE", False)
+
+    @property
     def NOTIFY_AFTER_SKIPPED_CONFIRM(self) -> bool:
         return self._setting("NOTIFY_AFTER_SKIPPED_CONFIRM", True)
 

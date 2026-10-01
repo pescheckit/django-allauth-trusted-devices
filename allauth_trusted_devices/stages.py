@@ -32,6 +32,10 @@ class TrustedDeviceStage(LoginStage):
             devices.touch(self.request, device)
             return None, True
 
+        if adapter.trust_first_device_silently(self.request, user):
+            devices.trust_device(self.request, user)
+            return None, True
+
         if mode == MODE_CONFIRM and adapter.requires_confirmation(self.request, self.login):
             email = adapter.get_email(user)
             if not email:
