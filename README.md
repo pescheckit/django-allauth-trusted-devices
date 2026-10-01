@@ -117,19 +117,16 @@ in `notify` mode everyone gets an email, in `confirm` mode everyone has to enter
 that, trust each user's first device silently:
 
 ```python
-from datetime import date
-
 TRUSTED_DEVICES_SILENT_FIRST_DEVICE = True
-TRUSTED_DEVICES_SILENT_FIRST_DEVICE_UNTIL = date(2026, 11, 15)  # e.g. a month after the rollout
 ```
 
-Only users who have never had a device are trusted this way. Removing devices keeps them in the
-history, so removing every device does not make the next sign-in silent again.
+This happens once per user, ever. Removing a device keeps it in the history, so removing every device
+does not make the next sign-in silent again; from the second device on, the normal check applies.
 
-The trade-off: until that date, whoever signs in first on an account without devices is trusted
-without a word (someone with the user's password who beats them to it, for example). Second factors
-still apply: MFA and login-by-code users pass those as usual. After the date, a user without devices
-signs in like everyone else. Leave `..._UNTIL` unset only if you accept that for good.
+The trade-off: on an account that has never had a device, whoever signs in first is trusted without a
+word (someone with the user's password who beats them to it, for example). Second factors still
+apply: MFA and login-by-code users pass those as usual. To close even that after the rollout, set an
+end date with `TRUSTED_DEVICES_SILENT_FIRST_DEVICE_UNTIL` (a `date` or `datetime`).
 
 ## Behind a proxy or load balancer
 
