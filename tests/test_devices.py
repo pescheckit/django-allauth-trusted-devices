@@ -136,6 +136,14 @@ class TestChecks:
 
         assert "allauth_trusted_devices.W001" in ids
 
+    def test_middleware_before_authentication(self, settings):
+        mw = [m for m in settings.MIDDLEWARE if "trusted_devices" not in m]
+        settings.MIDDLEWARE = ["allauth_trusted_devices.middleware.TrustedDeviceMiddleware", *mw]
+
+        ids = [m.id for m in run_checks()]
+
+        assert "allauth_trusted_devices.W003" in ids
+
     def test_missing_stage(self, settings):
         settings.ACCOUNT_ADAPTER = "allauth.account.adapter.DefaultAccountAdapter"
 

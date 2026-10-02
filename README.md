@@ -73,7 +73,7 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     # ...
     "allauth.account.middleware.AccountMiddleware",
-    "allauth_trusted_devices.middleware.TrustedDeviceMiddleware",
+    "allauth_trusted_devices.middleware.TrustedDeviceMiddleware",  # after AuthenticationMiddleware
 ]
 
 ACCOUNT_ADAPTER = "myproject.adapter.AccountAdapter"
@@ -215,7 +215,7 @@ Both use allauth's `{% element %}` tags, so they follow your allauth theme. Over
 The cookie holds a random 256-bit token; the database stores only its SHA-256 hash, with the user
 agent, the first and last IP address and timestamps. Removing a device (by the user, a password
 change, or the admin's "Remove selected devices" action) sets `revoked_at` and keeps the row; that
-browser then counts as a new device again. Deleting rows in the admin erases the history as well. One browser keeps one token, so on a shared
+browser is signed out and then counts as a new device again. One browser keeps one token, so on a shared
 computer each user gets their own trusted-device row for it. IP addresses are recorded for display
 only and never decide whether a device is trusted, because they change too often.
 
@@ -228,8 +228,13 @@ only and never decide whether a device is trusted, because they change too often
   `Secure` when your session cookie is, and only a hash is stored server-side.
 - **Not allauth's MFA trust.** allauth's `MFA_TRUST_ENABLED` cookie only skips the TOTP prompt for
   a while. This package's cookie decides whether a sign-in counts as a new device. Both can be on.
+- **Removing signs out.** A removed device is signed out on its next request, not only on its next
+  sign-in. That covers the Remove button, the admin action and a password change. Sessions that
+  signed in before 0.4.0 carry no device marker and are left alone until they sign in again.
 - **Password change revokes.** Changing, setting or resetting the password removes all other devices
   (`TRUSTED_DEVICES_REVOKE_ON_PASSWORD_CHANGE`), so a device an attacker got trusted stops counting.
+- **Nothing is deleted.** The admin can only remove devices, not delete them: deleting would erase the
+  history and make the next sign-in a silent first device again. Rows go when the user is deleted.
 
 ## Limitations
 

@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.4.0 (2026-10-02)
+
+- Removing a device signs that browser out on its next request (Remove button, admin action,
+  password change). The session remembers which device it signed in with.
+- The admin can no longer delete devices, only remove them, so the history cannot be erased.
+- System check `W003`: the middleware must come after `AuthenticationMiddleware`.
+
 ## 0.3.0 (2026-10-01)
 
 - Removing a device keeps it as history (`revoked_at`) instead of deleting it. The silent first

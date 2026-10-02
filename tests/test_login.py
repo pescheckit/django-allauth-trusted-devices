@@ -381,11 +381,68 @@ class TestRemovedDevices:
 
     def test_removed_device_is_not_listed_and_cannot_be_removed_twice(self, client, user):
         login(client)
+        other = Client(HTTP_USER_AGENT=UA_FIREFOX)
+        login(other)
+        first = TrustedDevice.objects.filter(user=user).order_by("created_at").first()
+
+        other.post(reverse("trusted_devices_revoke", args=[first.pk]))
+
+        assert first.pk not in [d.pk for d in other.get(reverse("trusted_devices_list")).context["devices"]]
+        assert other.post(reverse("trusted_devices_revoke", args=[first.pk])).status_code == 404
+
+    def test_removing_a_device_signs_that_browser_out(self, client, user):
+        login(client)
+        other = Client(HTTP_USER_AGENT=UA_FIREFOX)
+        login(other)
+        first = TrustedDevice.objects.filter(user=user).order_by("created_at").first()
+        assert client.get(reverse("trusted_devices_list")).status_code == 200
+
+        other.post(reverse("trusted_devices_revoke", args=[first.pk]))
+
+        assert client.get(reverse("trusted_devices_list")).status_code == 302
+        assert not is_logged_in(client)
+        assert other.get(reverse("trusted_devices_list")).status_code == 200
+
+    def test_removing_the_current_device_signs_out(self, client, user):
+        login(client)
         device = TrustedDevice.objects.get(user=user)
+
         client.post(reverse("trusted_devices_revoke", args=[device.pk]))
 
-        assert client.get(reverse("trusted_devices_list")).context["devices"] == []
-        assert client.post(reverse("trusted_devices_revoke", args=[device.pk])).status_code == 404
+        assert client.get(reverse("trusted_devices_list")).status_code == 302
+        assert not is_logged_in(client)
+
+    def test_password_change_signs_other_browsers_out(self, client, user):
+        login(client)
+        other = Client(HTTP_USER_AGENT=UA_FIREFOX)
+        login(other)
+
+        other.post(
+            reverse("account_change_password"),
+            {"oldpassword": PASSWORD, "password1": "another long passphrase", "password2": "another long passphrase"},
+        )
+
+        assert client.get(reverse("trusted_devices_list")).status_code == 302
+        assert other.get(reverse("trusted_devices_list")).status_code == 200
+
+    def test_session_without_device_marker_is_left_alone(self, client, user):
+        login(client)
+        session = client.session
+        session.pop("allauth_trusted_devices_device_id")
+        session.save()
+        TrustedDevice.objects.filter(user=user).update(revoked_at=timezone.now())
+
+        assert client.get(reverse("trusted_devices_list")).status_code == 200
+
+    def test_admin_cannot_delete_devices(self, user, admin_client):
+        device = TrustedDevice.objects.create(user=user, token_hash="b" * 64)
+
+        response = admin_client.post(
+            reverse("admin:allauth_trusted_devices_trusteddevice_delete", args=[device.pk]), {"post": "yes"}
+        )
+
+        assert response.status_code == 403
+        assert TrustedDevice.objects.filter(pk=device.pk).exists()
 
     def test_admin_action_removes_and_keeps_history(self, user, admin_client):
         TrustedDevice.objects.create(user=user, token_hash="a" * 64)

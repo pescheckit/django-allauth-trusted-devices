@@ -4,6 +4,7 @@ from django.core.checks import Warning, register
 
 STAGE_PATH = "allauth_trusted_devices.stages.TrustedDeviceStage"
 MIDDLEWARE_PATH = "allauth_trusted_devices.middleware.TrustedDeviceMiddleware"
+AUTH_MIDDLEWARE = "django.contrib.auth.middleware.AuthenticationMiddleware"
 
 
 @register()
@@ -14,6 +15,15 @@ def check_setup(app_configs, **kwargs):
             Warning(
                 f"{MIDDLEWARE_PATH} is not in MIDDLEWARE; device cookies will never be set.",
                 id="allauth_trusted_devices.W001",
+            )
+        )
+    elif AUTH_MIDDLEWARE not in settings.MIDDLEWARE or settings.MIDDLEWARE.index(
+        AUTH_MIDDLEWARE
+    ) > settings.MIDDLEWARE.index(MIDDLEWARE_PATH):
+        errors.append(
+            Warning(
+                f"{MIDDLEWARE_PATH} must come after {AUTH_MIDDLEWARE}; removed devices stay signed in.",
+                id="allauth_trusted_devices.W003",
             )
         )
     try:

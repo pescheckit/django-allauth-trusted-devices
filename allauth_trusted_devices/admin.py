@@ -35,3 +35,8 @@ class TrustedDeviceAdmin(admin.ModelAdmin):
 
     def has_add_permission(self, request):
         return False
+
+    def has_delete_permission(self, request, obj=None):
+        # Deleting would erase the user's device history and make their next sign-in a silent
+        # "first device" again. Use the remove action; rows go when the user account is deleted.
+        return False

@@ -11,6 +11,9 @@ from allauth_trusted_devices.models import TrustedDevice
 
 # Set on the request when a cookie must be written; TrustedDeviceMiddleware writes it.
 PENDING_COOKIE_ATTR = "_trusted_device_token"
+# Session key holding the TrustedDevice the session signed in with. TrustedDeviceMiddleware logs the
+# session out once that device is removed. Django keeps session data across login (cycle_key).
+SESSION_DEVICE_KEY = "allauth_trusted_devices_device_id"
 
 
 def hash_token(token: str) -> str:
@@ -51,6 +54,7 @@ def touch(request: HttpRequest, device: TrustedDevice) -> None:
     device.save(update_fields=["last_used_at", "last_ip_address"])
     # Re-issue the cookie so a device in regular use does not expire.
     setattr(request, PENDING_COOKIE_ATTR, get_token(request))
+    bind_session(request, device)
 
 
 def trust_device(request: HttpRequest, user) -> TrustedDevice:
@@ -74,7 +78,23 @@ def trust_device(request: HttpRequest, user) -> TrustedDevice:
         device.last_used_at = timezone.now()
         device.save(update_fields=["revoked_at", "user_agent", "last_ip_address", "last_used_at"])
     setattr(request, PENDING_COOKIE_ATTR, token)
+    bind_session(request, device)
     return device
+
+
+def bind_session(request: HttpRequest, device: TrustedDevice) -> None:
+    """Remember in the session which device it belongs to, so removing the device ends it."""
+    session = getattr(request, "session", None)
+    if session is not None:
+        session[SESSION_DEVICE_KEY] = device.pk
+
+
+def session_device_removed(request: HttpRequest) -> bool:
+    """Whether this session signed in with a device that has been removed since."""
+    device_id = request.session.get(SESSION_DEVICE_KEY)
+    if device_id is None:
+        return False
+    return not TrustedDevice.objects.active().filter(pk=device_id, user_id=request.user.pk).exists()
 
 
 def set_cookie(response: HttpResponse, token: str) -> None:
